@@ -94,3 +94,86 @@ function getRealPathFromURI(contentUri) {
 
     return cursor.getString(column_index);
 }
+
+
+function list(filterByImageNameEquals) {
+    
+    var BUCKET_DISPLAY_NAME = "bucket_display_name"      
+    var DATA = "_data"  
+    var BUCKET_ID = "bucket_id"
+    var DESCRIPTION  = "description"
+    var DISPLAY_NAME  = "_display_name"
+    var TITLE  = "title"
+    var MIME_TYPE = "mime_type"
+    var WIDTH = "width"
+    var HEIGHT = "height"
+    var listOfAllImages = []
+
+
+    var uri = android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+
+    var projection = [ 
+        DATA, 
+        BUCKET_DISPLAY_NAME, 
+        DESCRIPTION, 
+        BUCKET_ID, 
+        DISPLAY_NAME, 
+        TITLE, 
+        MIME_TYPE, 
+        WIDTH, 
+        HEIGHT 
+    ]
+
+    var cursor = _AndroidApplication.currentContext.getContentResolver().query(uri, projection, null, null, null);
+
+    var column_index_data = cursor.getColumnIndex(DATA);
+    //var column_index_folder_name = cursor.getColumnIndex(BUCKET_DISPLAY_NAME);
+    var column_index_title = cursor.getColumnIndex(TITLE);
+    var column_index_display_name = cursor.getColumnIndex(DISPLAY_NAME);
+    
+
+    while (cursor.moveToNext()) {
+        var absolutePathOfImage = cursor.getString(column_index_data)
+        var displayName = cursor.getString(column_index_display_name)
+        var title = cursor.getString(column_index_title)                
+
+        //console.log("## DISPLAY_NAME="+displayName)
+        //console.log("## TITLE="+title)
+        
+
+        if(!filterByImageNameEquals){
+            listOfAllImages.add(absolutePathOfImage);
+        }else{
+            if(displayName.toLowerCase() == filterByImageNameEquals.toLowerCase() || title.toLowerCase() == filterByImageNameEquals.toLowerCase())
+                return absolutePathOfImage
+        }
+    }
+
+    if(filterByImageNameEquals)
+        return undefined
+
+    return listOfAllImages;
+}
+
+exports.list = list
+
+exports.getImageFromMediaStore = function(path, name){
+
+    var filePath = list(name)
+
+    if(!filePath){
+
+        filePath =  android.provider.MediaStore.Images.Media.insertImage(
+            _AndroidApplication.currentContext.getContentResolver(), path, name, 'App SigTurismo');
+        
+        console.log('### create tumbnail in gallery ' + filePath)
+    }else{
+        console.log('### file founded in gallery ' + filePath)
+    }
+    
+    return filePath
+}
+
+function endsWith(text, suffix) {
+    return text.indexOf(suffix, text.length - suffix.length) !== -1;
+};
