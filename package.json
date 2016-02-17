@@ -1,2 +1,3 @@
 { "name" : "nativescript-image-gallery",
-  "main" : "image-gallery.js" }
+  "main" : "image-gallery.js",
+  "version": "0.0.1" }
