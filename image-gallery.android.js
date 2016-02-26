@@ -64,9 +64,15 @@ function openGallery(onImageSelectedCallback){
 
                 if(path != null){
                     var bitmap = android.graphics.BitmapFactory.decodeFile(path.toString())
+
+                    if(!bitmap){
+                        var inputStream = getInputStreamFromUri(imageCaptureUri)
+                        if(inputStream)
+                            bitmap = android.graphics.BitmapFactory.decodeStream(inputStream)
+                    }
+
                     var names = path.split('/')
                     var image = imageSource.fromNativeSource(bitmap);
-                    console.log("############ image name =" + names[names.length-1])
                     onImageSelectedCallback(image, names[names.length-1])
                 }
             }
@@ -82,19 +88,26 @@ exports.openGallery = openGallery;
 function getRealPathFromURI(contentUri) {
     var proj = [ "_data" ];
     console.log("############### contentUri=" + contentUri + ", proj=" + proj)
-    var cursor = _AndroidApplication.currentContext.managedQuery(contentUri, proj, null, null, null);
 
-    if (cursor == null) {
-        return null;
-    }
+    
+    var cursor = _AndroidApplication.currentContext.managedQuery(contentUri, proj, null, null, null);
+    
+    if (cursor == null)
+        return null;    
 
     var column_index = cursor.getColumnIndexOrThrow("_data");
-
     cursor.moveToFirst();
-
     return cursor.getString(column_index);
 }
 
+function getInputStreamFromUri(contentUri){
+    if(android.os.Build.VERSION.SDK_INT > 19){
+        var resolver = _AndroidApplication.currentContext.getContentResolver()
+        var parcelFileDescriptor = resolver.openFileDescriptor(contentUri, "r");
+        var inputStream = new java.io.FileInputStream(parcelFileDescriptor.getFileDescriptor());
+        return inputStream
+    }
+}
 
 function list(filterByImageNameEquals) {
     
