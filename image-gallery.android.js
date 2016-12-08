@@ -7,36 +7,33 @@ var imageSource = require("image-source");
 
 var RC_GALLERY = 9001
 
-exports.showOptions = function(onImageSelectedCallback){
+exports.showOptions = function(onImageSelectedCallback, onErrorCallback){
     dialogs.action({
       message: "Selecione uma opção",
       cancelButtonText: "Cancelar",
       actions: ["Nova Foto", "Galeria de Fotos"]
     }).then(function (result) {
-        console.log("######################## Dialog result: " + result)
 
         if(result == "Nova Foto")
-            takePickture(onImageSelectedCallback)
+            takePickture(onImageSelectedCallback, onErrorCallback)
         else
-            openGallery(onImageSelectedCallback)
+            openGallery(onImageSelectedCallback, onErrorCallback)
     });  
 }
 
-function takePickture(onImageSelectedCallback){
+function takePickture(onImageSelectedCallback, onErrorCallback){
     
-    cameraModule.takePicture({width: 300, height: 300, keepAspectRatio: true}).then(function(picture) {
-        
-        var image = new imageModule.Image();
-        image.imageSource = picture;
-
-        onImageSelectedCallback(image, null)
+    cameraModule.takePicture({width: 300, height: 300, keepAspectRatio: true}).then(function(picture) {        
+        onImageSelectedCallback(picture, null)
+    }).catch(function(error){
+        onErrorCallback(error)
     });
 }
 
 
 exports.takePickture = takePickture
 
-function openGallery(onImageSelectedCallback){
+function openGallery(onImageSelectedCallback, onErrorCallback){
 
     var intent = new android.content.Intent(android.content.Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
     
@@ -72,8 +69,8 @@ function openGallery(onImageSelectedCallback){
                     }
 
                     var names = path.split('/')
-                    var image = imageSource.fromNativeSource(bitmap);
-                    onImageSelectedCallback(image, names[names.length-1])
+                    var picture = imageSource.fromNativeSource(bitmap);
+                    onImageSelectedCallback(picture, names[names.length-1])
                 }
             }
         }
