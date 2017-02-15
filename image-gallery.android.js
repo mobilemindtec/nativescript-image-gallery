@@ -1,5 +1,4 @@
-var applicationModule = require("application");
-var _AndroidApplication = applicationModule.android;
+var application = require("application");
 var dialogs = require("ui/dialogs");
 var cameraModule = require("camera");
 var imageModule = require("ui/image");
@@ -26,6 +25,7 @@ function takePickture(onImageSelectedCallback, onErrorCallback){
     cameraModule.takePicture({width: 300, height: 300, keepAspectRatio: true}).then(function(picture) {        
         onImageSelectedCallback(picture, null)
     }).catch(function(error){
+        console.log("image-gallery.js: takePickture error" + error)
         onErrorCallback(error)
     });
 }
@@ -35,13 +35,16 @@ exports.takePickture = takePickture
 
 function openGallery(onImageSelectedCallback, onErrorCallback){
 
-    var intent = new android.content.Intent(android.content.Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+    var intent = new android.content.Intent(android.content.Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);    
     
-    var previousResult = _AndroidApplication.onActivityResult;
+    var previesResult = application.android.onActivityResult 
+    
+    application.android.onActivityResult = function (requestCode, resultCode, data) {
+        
+        application.android.onActivityResult  = previesResult
 
-  _AndroidApplication.onActivityResult = function (requestCode, resultCode, data) {
- 
-       _AndroidApplication.onActivityResult = previousResult;
+        console.log("image-gallery.js: onActivityResult requestCode=" + requestCode + ", resultCode=" + resultCode)
+
         
         if (requestCode === RC_GALLERY && resultCode === android.app.Activity.RESULT_OK) {
                 
@@ -76,7 +79,7 @@ function openGallery(onImageSelectedCallback, onErrorCallback){
         }
      }
 
-    _AndroidApplication.currentContext.startActivityForResult(intent, RC_GALLERY); 
+    application.android.currentContext.startActivityForResult(intent, RC_GALLERY); 
 }
 
 
@@ -87,7 +90,7 @@ function getRealPathFromURI(contentUri) {
     console.log("############### contentUri=" + contentUri + ", proj=" + proj)
 
     
-    var cursor = _AndroidApplication.currentContext.managedQuery(contentUri, proj, null, null, null);
+    var cursor = application.android.currentContext.managedQuery(contentUri, proj, null, null, null);
     
     if (cursor == null)
         return null;    
@@ -99,7 +102,7 @@ function getRealPathFromURI(contentUri) {
 
 function getInputStreamFromUri(contentUri){
     if(android.os.Build.VERSION.SDK_INT > 19){
-        var resolver = _AndroidApplication.currentContext.getContentResolver()
+        var resolver = application.android.currentContext.getContentResolver()
         var parcelFileDescriptor = resolver.openFileDescriptor(contentUri, "r");
         var inputStream = new java.io.FileInputStream(parcelFileDescriptor.getFileDescriptor());
         return inputStream
@@ -134,7 +137,7 @@ function list(filterByImageNameEquals) {
         HEIGHT 
     ]
 
-    var cursor = _AndroidApplication.currentContext.getContentResolver().query(uri, projection, null, null, null);
+    var cursor = application.android.currentContext.getContentResolver().query(uri, projection, null, null, null);
 
     var column_index_data = cursor.getColumnIndex(DATA);
     //var column_index_folder_name = cursor.getColumnIndex(BUCKET_DISPLAY_NAME);
@@ -174,7 +177,7 @@ exports.getImageFromMediaStore = function(path, name){
     if(!filePath){
 
         filePath =  android.provider.MediaStore.Images.Media.insertImage(
-            _AndroidApplication.currentContext.getContentResolver(), path, name, 'App SigTurismo');
+            application.android.currentContext.getContentResolver(), path, name, 'App SigTurismo');
         
         console.log('### create tumbnail in gallery ' + filePath)
     }else{
