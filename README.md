@@ -9,10 +9,13 @@ Take photo or get video/image from gallery
 ```
 <key>NSCameraUsageDescription</key>
 <string>Used to photo take</string>
+
 <key>NSPhotoLibraryUsageDescription</key>
 <string>Used to select photo</string>
+
 <key>NSAppleMusicUsageDescription</key>
 <string>Used to select midia</string>
+
 <key>NSMicrophoneUsageDescription</key>
 <string>Used to make a video</string>
 ```
