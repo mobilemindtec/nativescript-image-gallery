@@ -6,7 +6,29 @@ var imageSource = require("image-source");
 
 var RC_GALLERY = 9001
 
-exports.showOptions = function(onImageSelectedCallback, onErrorCallback){
+var errorHandler
+var successHandler
+
+function onParams(params) {
+  successHandler = params.success || function(data) { console.log("success callback not set")  }
+  errorHandler = params.error || function(data) { console.log("error callback not set")  }
+  params.mediaTypes = params.mediaTypes || ["video", "image"]
+  params.camera = params.camera || {width: 300, height: 300, keepAspectRatio: true}
+}
+
+/*
+  params = {
+    mediaTypes: ["video", "image"],
+    camera: {width: 300, height: 300, keepAspectRatio: true},
+    error: function
+    success: function
+  }
+*/
+
+exports.showOptions = function(params){
+
+    onParams(params)
+
     dialogs.action({
       message: "Selecione uma opção",
       cancelButtonText: "Cancelar",
@@ -14,46 +36,75 @@ exports.showOptions = function(onImageSelectedCallback, onErrorCallback){
     }).then(function (result) {
 
         if(result == "Nova Foto")
-            takePickture(onImageSelectedCallback, onErrorCallback)
+            takePhoto(params)
         else
-            openGallery(onImageSelectedCallback, onErrorCallback)
-    });  
+            openGallery(params)
+    });
 }
 
-function takePickture(onImageSelectedCallback, onErrorCallback){
-    
-    cameraModule.takePicture({width: 300, height: 300, keepAspectRatio: true}).then(function(picture) {        
-        onImageSelectedCallback(picture, null)
+function takePhoto(params){
+
+    onParams(params)
+
+    cameraModule.takePicture(params.camera).then(function(picture) {
+
+      successHandler({
+        result: picture,
+        name: null,
+        url: null
+      })
+
     }).catch(function(error){
-        console.log("image-gallery.js: takePickture error" + error)
-        onErrorCallback(error)
+        console.log("image-gallery.js takePhoto error: " + error)
+        errorHandler(error)
     });
 }
 
 
-exports.takePickture = takePickture
+exports.takePhoto = takePhoto
 
 function openGallery(onImageSelectedCallback, onErrorCallback){
 
-    var intent = new android.content.Intent(android.content.Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);    
-    
-    var previesResult = application.android.onActivityResult 
-    
+    onParams(params)
+
+    var intent = new android.content.Intent(android.content.Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+    //pickIntent.setType("image/* video/*");
+
+    var mediaTypes = ""
+
+    if(params.mediaTypes.indexOf("image") > -1)
+      mediaTypes = "image/*"
+
+    if(params.mediaTypes.indexOf("video"))
+      mediaTypes = " video/*"
+
+    if(mediaTypes.length == 0){
+      mediaTypes = "image/* video/*"
+    }
+
+    intent.setType(mediaTypes)
+
+    var previesResult = application.android.onActivityResult
+
     application.android.onActivityResult = function (requestCode, resultCode, data) {
-        
+
         application.android.onActivityResult  = previesResult
 
         console.log("image-gallery.js: onActivityResult requestCode=" + requestCode + ", resultCode=" + resultCode)
 
-        
+
         if (requestCode === RC_GALLERY && resultCode === android.app.Activity.RESULT_OK) {
-                
+
             if(data != null && data.getData() != null){
 
                 var imageCaptureUri = data.getData();
                 var path = getRealPathFromURI(imageCaptureUri)
 
-
+                if (imageCaptureUri.toString().contains("images")) {
+                    //handle image
+                } else  if (imageCaptureUri.toString().contains("video")) {
+                    //handle video
+                }
 
                 if(path == null)
                     path = imageCaptureUri.getPath()
@@ -62,7 +113,9 @@ function openGallery(onImageSelectedCallback, onErrorCallback){
                 console.log("### image path=" + path.toString())
                 console.log("##########################")
 
-                if(path != null){
+                var names = path.split('/')
+
+                if (imageCaptureUri.toString().contains("images")) {
                     var bitmap = android.graphics.BitmapFactory.decodeFile(path.toString())
 
                     if(!bitmap){
@@ -71,15 +124,26 @@ function openGallery(onImageSelectedCallback, onErrorCallback){
                             bitmap = android.graphics.BitmapFactory.decodeStream(inputStream)
                     }
 
-                    var names = path.split('/')
                     var picture = imageSource.fromNativeSource(bitmap);
-                    onImageSelectedCallback(picture, names[names.length-1])
+
+                    successHandler({
+                      result: picture,
+                      name: names[names.length-1],
+                      url:  path
+                    })
+                }else{
+                  successHandler({
+                    result: null,
+                    name: names[names.length-1],
+                    url:  path
+                  })
                 }
+
             }
         }
      }
 
-    application.android.currentContext.startActivityForResult(intent, RC_GALLERY); 
+    application.android.currentContext.startActivityForResult(intent, RC_GALLERY);
 }
 
 
@@ -89,11 +153,11 @@ function getRealPathFromURI(contentUri) {
     var proj = [ "_data" ];
     console.log("############### contentUri=" + contentUri + ", proj=" + proj)
 
-    
+
     var cursor = application.android.currentContext.managedQuery(contentUri, proj, null, null, null);
-    
+
     if (cursor == null)
-        return null;    
+        return null;
 
     var column_index = cursor.getColumnIndexOrThrow("_data");
     cursor.moveToFirst();
@@ -110,9 +174,9 @@ function getInputStreamFromUri(contentUri){
 }
 
 function list(filterByImageNameEquals) {
-    
-    var BUCKET_DISPLAY_NAME = "bucket_display_name"      
-    var DATA = "_data"  
+
+    var BUCKET_DISPLAY_NAME = "bucket_display_name"
+    var DATA = "_data"
     var BUCKET_ID = "bucket_id"
     var DESCRIPTION  = "description"
     var DISPLAY_NAME  = "_display_name"
@@ -125,16 +189,16 @@ function list(filterByImageNameEquals) {
 
     var uri = android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI
 
-    var projection = [ 
-        DATA, 
-        BUCKET_DISPLAY_NAME, 
-        DESCRIPTION, 
-        BUCKET_ID, 
-        DISPLAY_NAME, 
-        TITLE, 
-        MIME_TYPE, 
-        WIDTH, 
-        HEIGHT 
+    var projection = [
+        DATA,
+        BUCKET_DISPLAY_NAME,
+        DESCRIPTION,
+        BUCKET_ID,
+        DISPLAY_NAME,
+        TITLE,
+        MIME_TYPE,
+        WIDTH,
+        HEIGHT
     ]
 
     var cursor = application.android.currentContext.getContentResolver().query(uri, projection, null, null, null);
@@ -143,16 +207,16 @@ function list(filterByImageNameEquals) {
     //var column_index_folder_name = cursor.getColumnIndex(BUCKET_DISPLAY_NAME);
     var column_index_title = cursor.getColumnIndex(TITLE);
     var column_index_display_name = cursor.getColumnIndex(DISPLAY_NAME);
-    
+
 
     while (cursor.moveToNext()) {
         var absolutePathOfImage = cursor.getString(column_index_data)
         var displayName = cursor.getString(column_index_display_name)
-        var title = cursor.getString(column_index_title)                
+        var title = cursor.getString(column_index_title)
 
         //console.log("## DISPLAY_NAME="+displayName)
         //console.log("## TITLE="+title)
-        
+
 
         if(!filterByImageNameEquals){
             listOfAllImages.add(absolutePathOfImage);
@@ -177,13 +241,13 @@ exports.getImageFromMediaStore = function(path, name){
     if(!filePath){
 
         filePath =  android.provider.MediaStore.Images.Media.insertImage(
-            application.android.currentContext.getContentResolver(), path, name, 'App SigTurismo');
-        
+            application.android.currentContext.getContentResolver(), path, name, 'NativeScript Gallery');
+
         console.log('### create tumbnail in gallery ' + filePath)
     }else{
         console.log('### file founded in gallery ' + filePath)
     }
-    
+
     return filePath
 }
 

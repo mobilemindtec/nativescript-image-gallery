@@ -1,0 +1,15 @@
+
+<Page xmlns="http://schemas.nativescript.org/tns.xsd" loaded="loaded" class="page">
+    <Page.actionBar>
+        <ActionBar title="My App" icon="" class="action-bar">
+        </ActionBar>
+    </Page.actionBar>
+    <StackLayout class="p-20">
+        <Label text="NativeScript Gallery" class="h1 text-center"/>
+        <Button text="Take Photo" tap="onPhoto" class="btn btn-primary btn-active"/>
+        <Button text="Open Photo Grallery" tap="onGallery" class="btn btn-primary btn-active"/>
+        <Label text="{{ message }}" class="h2 text-center" textWrap="true"/>
+
+        <Image imageSource="{{ img }}" />
+    </StackLayout>
+</Page>
