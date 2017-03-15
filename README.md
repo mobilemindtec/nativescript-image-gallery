@@ -20,7 +20,7 @@ Take photo or get video/image from gallery
 <string>Used to make a video</string>
 ```
 
-## Adroid
+## Android
 
 * Enable permissions CAMERA and READ_OWNER_DATA.. use nativescript-permissions plugin
 
