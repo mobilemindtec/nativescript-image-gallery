@@ -1,5 +1,7 @@
 # nativescript-image-gallery
 
+Take photo or get video/image from gallery
+
 ## IOS
 
 * add at info.plist
