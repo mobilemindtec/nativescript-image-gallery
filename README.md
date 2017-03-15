@@ -7,14 +7,14 @@ Take photo or get video/image from gallery
 * add at info.plist
 
 ```
-  <key>NSCameraUsageDescription</key>
-	<string>Used to photo take</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Used to select photo</string>
-	<key>NSAppleMusicUsageDescription</key>
-	<string>Used to select midia</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Used to make a video</string>
+<key>NSCameraUsageDescription</key>
+<string>Used to photo take</string>
+<key>NSPhotoLibraryUsageDescription</key>
+<string>Used to select photo</string>
+<key>NSAppleMusicUsageDescription</key>
+<string>Used to select midia</string>
+<key>NSMicrophoneUsageDescription</key>
+<string>Used to make a video</string>
 ```
 
 ## Adroid
@@ -25,36 +25,36 @@ Take photo or get video/image from gallery
 ```
 
 var GalleryHandler = require("nativescript-image-gallery")
-  
-  // show a question to open camera or gallery
-  GalleryHandler.showOptions({
-    camera: {width: 300, height: 300, keepAspectRatio: true},  
-    success: function (data) {
-      // data { result: picture, name: 'filename.png', url: "path or assets" }
-    },
-    error: function(error){
-      // handler error
-    }
-  })
 
-  GalleryHandler.openGallery({
-    camera: {width: 300, height: 300, keepAspectRatio: true},  
-    success: function (data) {
-      // data { result: picture, name: 'filename.png', url: "path or assets" }
-    },
-    error: function(error){
-      // handler error
-    }
-  })
-  
-  GalleryHandler.takePhoto({
-    mediaTypes: ["video", "image"],   
-    success: function (data) {
-      // data { result: picture, name: 'filename.png', url: "path or assets" }
-    },
-    error: function(error){
-      // handler error
-    }
-  })
+// show a question to open camera or gallery
+GalleryHandler.showOptions({
+  camera: {width: 300, height: 300, keepAspectRatio: true},  
+  success: function (data) {
+    // data { result: picture, name: 'filename.png', url: "path or assets" }
+  },
+  error: function(error){
+    // handler error
+  }
+})
+
+GalleryHandler.openGallery({
+  camera: {width: 300, height: 300, keepAspectRatio: true},  
+  success: function (data) {
+    // data { result: picture, name: 'filename.png', url: "path or assets" }
+  },
+  error: function(error){
+    // handler error
+  }
+})
+
+GalleryHandler.takePhoto({
+  mediaTypes: ["video", "image"],   
+  success: function (data) {
+    // data { result: picture, name: 'filename.png', url: "path or assets" }
+  },
+  error: function(error){
+    // handler error
+  }
+})
 
 ```
