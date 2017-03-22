@@ -68,8 +68,8 @@ var ImagePickerControllerDelegate = (function(_super){
     _super.applay(this, arguments)
   }
 
-  ImagePickerControllerDelegate.prototype.imagePickerControllerDidCancel = function(picker){
-    console.log("UIImagePickerControllerDelegate.imagePickerControllerDidCancel")
+  ImagePickerControllerDelegate.prototype.imagePickerControllerDidCancel = function(picker){    
+    picker.presentingViewController.dismissViewControllerAnimatedCompletion(true, null);
   }
 
   ImagePickerControllerDelegate.prototype.imagePickerControllerDidFinishPickingMediaWithInfo = function(picker, info){
