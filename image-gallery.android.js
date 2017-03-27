@@ -63,7 +63,7 @@ function takePhoto(params){
 
 exports.takePhoto = takePhoto
 
-function openGallery(onImageSelectedCallback, onErrorCallback){
+function openGallery(params){
 
     onParams(params)
 
@@ -100,9 +100,9 @@ function openGallery(onImageSelectedCallback, onErrorCallback){
                 var imageCaptureUri = data.getData();
                 var path = getRealPathFromURI(imageCaptureUri)
 
-                if (imageCaptureUri.toString().contains("images")) {
+                if (imageCaptureUri.toString().indexOf("images") > -1) {
                     //handle image
-                } else  if (imageCaptureUri.toString().contains("video")) {
+                } else  if (imageCaptureUri.toString().indexOf("video")) {
                     //handle video
                 }
 
@@ -115,7 +115,7 @@ function openGallery(onImageSelectedCallback, onErrorCallback){
 
                 var names = path.split('/')
 
-                if (imageCaptureUri.toString().contains("images")) {
+                if (imageCaptureUri.toString().indexOf("images") > -1) {
                     var bitmap = android.graphics.BitmapFactory.decodeFile(path.toString())
 
                     if(!bitmap){
