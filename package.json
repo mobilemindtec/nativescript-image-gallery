@@ -1,3 +1,13 @@
 { "name" : "nativescript-image-gallery",
   "main" : "image-gallery.js",
-  "version": "0.0.1" }
+  "version": "0.0.1",
+  "dependencies": {
+    "nativescript-camera": "^3.0.1"
+	},
+  "nativescript": {
+    "platforms": {
+      "ios": "3.0.0",
+      "android": "3.0.0"
+    }
+  } 	  
+}

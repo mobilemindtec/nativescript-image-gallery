@@ -1,6 +1,6 @@
 var application = require("application");
 var dialogs = require("ui/dialogs");
-var cameraModule = require("camera");
+var cameraModule = require("nativescript-camera");
 var imageModule = require("ui/image");
 var imageSource = require("image-source");
 
@@ -84,20 +84,16 @@ function openGallery(params){
 
     intent.setType(mediaTypes)
 
-    var previesResult = application.android.onActivityResult
-
-    application.android.onActivityResult = function (requestCode, resultCode, data) {
-
-        application.android.onActivityResult  = previesResult
-
-        console.log("image-gallery.js: onActivityResult requestCode=" + requestCode + ", resultCode=" + resultCode)
+    application.android.on("activityResult", function(eventData) {
 
 
-        if (requestCode === RC_GALLERY && resultCode === android.app.Activity.RESULT_OK) {
+        if (eventData.requestCode === RC_GALLERY && eventData.resultCode === android.app.Activity.RESULT_OK) {
 
+            var data = eventData.intent
             if(data != null && data.getData() != null){
 
                 var imageCaptureUri = data.getData();
+                
                 var path = getRealPathFromURI(imageCaptureUri)
 
                 if (imageCaptureUri.toString().indexOf("images") > -1) {
@@ -141,7 +137,9 @@ function openGallery(params){
 
             }
         }
-     }
+
+    })
+
 
     application.android.currentContext.startActivityForResult(intent, RC_GALLERY);
 }
