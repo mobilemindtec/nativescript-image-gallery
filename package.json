@@ -1,5 +1,5 @@
 { "name" : "nativescript-image-gallery",
-  "main" : "image-gallery.js",
+  "main" : "index.js",
   "version": "0.0.1",
   "dependencies": {
     "nativescript-camera": "^3.0.1"
