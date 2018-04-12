@@ -1,6 +1,6 @@
 var application = require("application");
 var dialogs = require("ui/dialogs");
-var cameraModule = require("camera");
+var cameraModule = require("nativescript-camera");
 var imageModule = require("ui/image");
 var imageSource = require("image-source");
 
