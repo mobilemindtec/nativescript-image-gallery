@@ -63,7 +63,7 @@ function takePhoto(params){
 
 exports.takePhoto = takePhoto
 
-function openGallery(onImageSelectedCallback, onErrorCallback){
+function openGallery(params){
 
     onParams(params)
 
@@ -84,25 +84,21 @@ function openGallery(onImageSelectedCallback, onErrorCallback){
 
     intent.setType(mediaTypes)
 
-    var previesResult = application.android.onActivityResult
-
-    application.android.onActivityResult = function (requestCode, resultCode, data) {
-
-        application.android.onActivityResult  = previesResult
-
-        console.log("image-gallery.js: onActivityResult requestCode=" + requestCode + ", resultCode=" + resultCode)
+    application.android.on("activityResult", function(eventData) {
 
 
-        if (requestCode === RC_GALLERY && resultCode === android.app.Activity.RESULT_OK) {
+        if (eventData.requestCode === RC_GALLERY && eventData.resultCode === android.app.Activity.RESULT_OK) {
 
+            var data = eventData.intent
             if(data != null && data.getData() != null){
 
                 var imageCaptureUri = data.getData();
+                
                 var path = getRealPathFromURI(imageCaptureUri)
 
-                if (imageCaptureUri.toString().contains("images")) {
+                if (imageCaptureUri.toString().indexOf("images") > -1) {
                     //handle image
-                } else  if (imageCaptureUri.toString().contains("video")) {
+                } else  if (imageCaptureUri.toString().indexOf("video")) {
                     //handle video
                 }
 
@@ -115,7 +111,7 @@ function openGallery(onImageSelectedCallback, onErrorCallback){
 
                 var names = path.split('/')
 
-                if (imageCaptureUri.toString().contains("images")) {
+                if (imageCaptureUri.toString().indexOf("images") > -1) {
                     var bitmap = android.graphics.BitmapFactory.decodeFile(path.toString())
 
                     if(!bitmap){
@@ -141,7 +137,9 @@ function openGallery(onImageSelectedCallback, onErrorCallback){
 
             }
         }
-     }
+
+    })
+
 
     application.android.currentContext.startActivityForResult(intent, RC_GALLERY);
 }
