@@ -46,10 +46,16 @@ function takePhoto(params){
 
     onParams(params)
 
-    cameraModule.takePicture(params.camera).then(function(picture) {
+    cameraModule.takePicture(params.camera).then(function(imageAsset) {
+
+      console.log("image-gallery.js takePhoto: imageAsset=" + imageAsset)
+
+      var image = new imageModule.Image()
+      image.src = imageAsset
 
       successHandler({
-        result: picture,
+        result: image,
+        imageAsset: imageAsset,
         name: null,
         url: null
       })
