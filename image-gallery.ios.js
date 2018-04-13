@@ -48,11 +48,9 @@ function takePhoto(params){
 
       console.log("image-gallery.js takePhoto: imageAsset=" + imageAsset)
 
-      var image = new imageModule.Image()
-      image.src = imageAsset
 
       successHandler({
-        result: image,
+        result: imageSource.fromNativeSource(imageAsset.nativeImage),
         imageAsset: imageAsset,
         name: null,
         url: null
