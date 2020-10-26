@@ -1,13 +1,41 @@
-{ "name" : "nativescript-image-gallery",
-  "main" : "index.js",
-  "version": "0.0.1",
+{
+  "_args": [
+    [
+      "git+https://github.com/mobilemindtec/nativescript-image-gallery.git",
+      "/Volumes/Data/sources/repositories/amo/app/amo"
+    ]
+  ],
+  "_from": "git+https://github.com/mobilemindtec/nativescript-image-gallery.git",
+  "_id": "nativescript-image-gallery@git+https://github.com/mobilemindtec/nativescript-image-gallery.git#fc0fe575b497dff865d2a81208b07e59fff8fdae",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/nativescript-image-gallery",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "git+https://github.com/mobilemindtec/nativescript-image-gallery.git",
+    "rawSpec": "git+https://github.com/mobilemindtec/nativescript-image-gallery.git",
+    "saveSpec": "git+https://github.com/mobilemindtec/nativescript-image-gallery.git",
+    "fetchSpec": "https://github.com/mobilemindtec/nativescript-image-gallery.git",
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "git+https://github.com/mobilemindtec/nativescript-image-gallery.git#fc0fe575b497dff865d2a81208b07e59fff8fdae",
+  "_spec": "git+https://github.com/mobilemindtec/nativescript-image-gallery.git",
+  "_where": "/Volumes/Data/sources/repositories/amo/app/amo",
   "dependencies": {
     "@nativescript/camera": "^5.0.2"
-	},
+  },
+  "description": "Take photo or get video/image from gallery",
+  "main": "index.js",
+  "name": "nativescript-image-gallery",
   "nativescript": {
     "platforms": {
       "ios": "3.0.0",
       "android": "3.0.0"
     }
-  } 	  
+  },
+  "version": "0.0.1"
 }

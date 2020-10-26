@@ -1,8 +1,8 @@
 var application = require("application");
-var dialogs = require("ui/dialogs");
+var dialogs = require("@nativescript/core/ui/dialogs");
 var cameraModule = require("@nativescript/camera");
-var imageModule = require("ui/image");
-var imageSource = require("image-source");
+var imageModule = require("@nativescript/core/ui/image");
+var imageSource = require("@nativescript/core/image-source");
 
 var errorHandler
 var successHandler
@@ -50,10 +50,9 @@ function takePhoto(params){
 
 
       successHandler({
-        result: imageSource.fromNativeSource(imageAsset.nativeImage),
-        imageAsset: imageAsset,
-        name: null,
-        url: null
+        imgSrc: imageSource.ImageSource.fromFileSync(imageAsset.ios),
+        path: imageAsset.android,
+        name: splited[splited.length-1]        
       })
 
     }).catch(function(error){
@@ -64,19 +63,18 @@ function takePhoto(params){
 
 exports.takePhoto = takePhoto
 
-var ImagePickerControllerDelegate = (function(_super){
+@NativeClass()
+class  ImagePickerControllerDelegate extends NSObject{
 
-   __extends(ImagePickerControllerDelegate, _super)
-
-  function ImagePickerControllerDelegate() {
-    _super.applay(this, arguments)
+  constructor {
+    super()
   }
 
-  ImagePickerControllerDelegate.prototype.imagePickerControllerDidCancel = function(picker){    
+  imagePickerControllerDidCancel(picker){    
     picker.presentingViewController.dismissViewControllerAnimatedCompletion(true, null);
   }
 
-  ImagePickerControllerDelegate.prototype.imagePickerControllerDidFinishPickingMediaWithInfo = function(picker, info){
+  imagePickerControllerDidFinishPickingMediaWithInfo(picker, info){
 
     console.log(info)
 
@@ -107,21 +105,18 @@ var ImagePickerControllerDelegate = (function(_super){
     //"assets-library://asset/asset.JPG?id=2EFB75E5-3820-488D-83D7-EE86C88EAFCB&ext=JPG"
 
     successHandler({
-      result: image,
+      imgSrc: image,
       name: name,
-      url: path || asset,
+      path: path || asset,
       type: midiaType == "public.movie" ? "video" : "image"
     })
 
     picker.presentingViewController.dismissViewControllerAnimatedCompletion(true, null);
 
   }
+}
 
-  ImagePickerControllerDelegate.ObjCProtocols = [UIImagePickerControllerDelegate, UINavigationControllerDelegate];
-
-  return ImagePickerControllerDelegate
-
-})(NSObject)
+ImagePickerControllerDelegate.ObjCProtocols = [UIImagePickerControllerDelegate, UINavigationControllerDelegate];
 
 function openGallery(params){
 

@@ -1,8 +1,7 @@
 var application = require("application");
-var dialogs = require("ui/dialogs");
+var dialogs = require("@nativescript/core/ui/dialogs");
 var cameraModule = require("@nativescript/camera");
-var imageModule = require("ui/image");
-var imageSource = require("image-source");
+var imageSource = require("@nativescript/core/image-source")
 
 var RC_GALLERY = 9001
 
@@ -50,11 +49,11 @@ function takePhoto(params){
 
       console.log("image-gallery.js takePhoto: imageAsset=" + imageAsset)
 
+      var splited = imageAsset.android.split("/")
       successHandler({
-        result: imageSource.fromNativeSource(imageAsset.nativeImage),
-        imageAsset: imageAsset,
-        name: null,
-        url: null
+        imgSrc: imageSource.ImageSource.fromFileSync(imageAsset.android),
+        path: imageAsset.android,
+        name: splited[splited.length-1]        
       })
 
     }).catch(function(error){
@@ -70,6 +69,7 @@ function openGallery(params){
 
     onParams(params)
 
+    var ac = application.android.foregroundActivity || application.android.startActivity;
     var intent = new android.content.Intent(android.content.Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
     //pickIntent.setType("image/* video/*");
 
@@ -96,7 +96,33 @@ function openGallery(params){
             if(data != null && data.getData() != null){
 
                 var imageCaptureUri = data.getData();
+
+                var bitmap = android.provider.MediaStore.Images.Media.getBitmap(ac.getContentResolver(), imageCaptureUri);
+
+                //console.log("--------")
+                //console.log(bitmap)
+                var picture = new imageSource.ImageSource(bitmap);
+                //console.log(picture)
+
+                var path = imageCaptureUri.getPath()
+
+                //console.log(path)
+
+                var name
+
+                if(path.toLowerCase().indexOf(".png") > -1 || path.toLowerCase().indexOf(".jpg") > -1 || path.toLowerCase().indexOf(".jpeg") > -1){
+                    var split = path.split("/")
+                    name = split[split.length-1]
+                }
+
+                successHandler({
+                  imgSrc: picture,
+                  name: name,
+                  url:  path
+                })
+
                 
+                /*
                 var path = getRealPathFromURI(imageCaptureUri)
 
                 if (imageCaptureUri.toString().indexOf("images") > -1) {
@@ -104,6 +130,8 @@ function openGallery(params){
                 } else  if (imageCaptureUri.toString().indexOf("video")) {
                     //handle video
                 }
+
+                console.log("real path = " + path)
 
                 if(path == null)
                     path = imageCaptureUri.getPath()
@@ -114,6 +142,7 @@ function openGallery(params){
 
                 var names = path.split('/')
 
+                
                 if (imageCaptureUri.toString().indexOf("images") > -1) {
                     var bitmap = android.graphics.BitmapFactory.decodeFile(path.toString())
 
@@ -123,20 +152,20 @@ function openGallery(params){
                             bitmap = android.graphics.BitmapFactory.decodeStream(inputStream)
                     }
 
-                    var picture = imageSource.fromNativeSource(bitmap);
+                    var picture = new imageSource.ImageSource(bitmap);
 
                     successHandler({
-                      result: picture,
+                      imgSrc: picture,
                       name: names[names.length-1],
                       url:  path
                     })
                 }else{
                   successHandler({
-                    result: null,
+                    imgSrc: imageSource.ImageSource.fromFileSync(path),
                     name: names[names.length-1],
-                    url:  path
+                    path:  path
                   })
-                }
+                }*/
 
             }
         }
@@ -144,30 +173,58 @@ function openGallery(params){
     })
 
 
-    application.android.currentContext.startActivityForResult(intent, RC_GALLERY);
+ 
+    ac.startActivityForResult(intent, RC_GALLERY);
 }
 
 
 exports.openGallery = openGallery;
 
 function getRealPathFromURI(contentUri) {
-    var proj = [ "_data" ];
-    console.log("############### contentUri=" + contentUri + ", proj=" + proj)
 
+    var cursor
 
-    var cursor = application.android.currentContext.managedQuery(contentUri, proj, null, null, null);
+    try{
 
-    if (cursor == null)
-        return null;
+        var proj = [ android.provider.MediaStore.Images.Media.DATA ];
+        console.log("############### contentUri=" + contentUri + ", proj=" + proj)
 
-    var column_index = cursor.getColumnIndexOrThrow("_data");
-    cursor.moveToFirst();
-    return cursor.getString(column_index);
+        var ac = application.android.foregroundActivity || application.android.startActivity;
+
+        cursor = ac.getContentResolver().query(contentUri, proj, null, null, null);
+
+        if (cursor == null)
+            return null;
+
+        var column_index = cursor.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media.DATA);
+        cursor.moveToFirst();
+        var path = cursor.getString(column_index);
+
+        if(path == null && contentUri.getPath().indexOf(":") > -1){
+
+            var documentId = contentUri.getPath().split(":")[1]
+
+            cursor = ac.getContentResolver().query(
+                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, 
+                null, 
+                android.provider.MediaStore.Images.Media._ID + " = ? ", 
+                [documentId], null)
+            cursor.moveToFirst();
+            path = cursor.getString(cursor.getColumnIndex(android.provider.MediaStore.Images.Media.DATA));            
+        }
+
+        return path
+
+    }finally{
+        if(cursor != null)
+            cursor.close()
+    }
 }
 
 function getInputStreamFromUri(contentUri){
     if(android.os.Build.VERSION.SDK_INT > 19){
-        var resolver = application.android.currentContext.getContentResolver()
+        var ac = application.android.foregroundActivity || application.android.startActivity;
+        var resolver = ac.getContentResolver()
         var parcelFileDescriptor = resolver.openFileDescriptor(contentUri, "r");
         var inputStream = new java.io.FileInputStream(parcelFileDescriptor.getFileDescriptor());
         return inputStream
@@ -202,7 +259,8 @@ function list(filterByImageNameEquals) {
         HEIGHT
     ]
 
-    var cursor = application.android.currentContext.getContentResolver().query(uri, projection, null, null, null);
+    var ac = application.android.foregroundActivity || application.android.startActivity;
+    var cursor = ac.getContentResolver().query(uri, projection, null, null, null);
 
     var column_index_data = cursor.getColumnIndex(DATA);
     //var column_index_folder_name = cursor.getColumnIndex(BUCKET_DISPLAY_NAME);
@@ -241,8 +299,9 @@ exports.getImageFromMediaStore = function(path, name){
 
     if(!filePath){
 
+        var ac = application.android.foregroundActivity || application.android.startActivity;
         filePath =  android.provider.MediaStore.Images.Media.insertImage(
-            application.android.currentContext.getContentResolver(), path, name, 'NativeScript Gallery');
+            ac.getContentResolver(), path, name, 'NativeScript Gallery');
 
         console.log('### create tumbnail in gallery ' + filePath)
     }else{
