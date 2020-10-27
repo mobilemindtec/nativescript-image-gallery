@@ -4,6 +4,7 @@ var cameraModule = require("@nativescript/camera");
 var imageModule = require("@nativescript/core/ui/image");
 var imageSource = require("@nativescript/core/image-source");
 
+
 var errorHandler
 var successHandler
 
@@ -47,12 +48,9 @@ function takePhoto(params){
     cameraModule.takePicture(params.camera).then(function(imageAsset) {
 
       console.log("image-gallery.js takePhoto: imageAsset=" + imageAsset)
-
-
+      console.dir(imageAsset)
       successHandler({
-        imgSrc: imageSource.ImageSource.fromFileSync(imageAsset.ios),
-        path: imageAsset.android,
-        name: splited[splited.length-1]        
+        imgSrc: new imageSource.ImageSource(imageAsset.nativeImage)
       })
 
     }).catch(function(error){
@@ -63,18 +61,19 @@ function takePhoto(params){
 
 exports.takePhoto = takePhoto
 
-@NativeClass()
-class  ImagePickerControllerDelegate extends NSObject{
+var ImagePickerControllerDelegate = (function(_super){
 
-  constructor {
-    super()
+   __extends(ImagePickerControllerDelegate, _super)
+
+  function ImagePickerControllerDelegate() {
+    _super.applay(this, arguments)
   }
 
-  imagePickerControllerDidCancel(picker){    
+  ImagePickerControllerDelegate.prototype.imagePickerControllerDidCancel = function(picker){    
     picker.presentingViewController.dismissViewControllerAnimatedCompletion(true, null);
   }
 
-  imagePickerControllerDidFinishPickingMediaWithInfo(picker, info){
+  ImagePickerControllerDelegate.prototype.imagePickerControllerDidFinishPickingMediaWithInfo = function(picker, info){
 
     console.log(info)
 
@@ -83,23 +82,31 @@ class  ImagePickerControllerDelegate extends NSObject{
 
     var image = info.objectForKey("UIImagePickerControllerOriginalImage")
     var asset = info.objectForKey("UIImagePickerControllerReferenceURL")
-    var path = info.objectForKey("UIImagePickerControllerMediaURL")
+    var path = info.objectForKey("UIImagePickerControllerImageURL")
 
+    
     if(asset)
       asset = asset + ""
 
     if(path)
       path = path + ""
 
-    if(asset && asset.indexOf("assets-library://") > -1){
+    
+
+    if(path){
+      path = path + ""
+      var splited = path.split("/")
+      name = splited[splited.length-1]
+    }else if(asset && asset.indexOf("assets-library://") > -1){
       var splited = asset.split("?")
       var names = splited[1].split("&")
 
       name = names[0].split("=")[1] + "." + names[1].split("=")[1]
-    }
+    }      
+    
 
     if(image){
-      image = imageSource.fromNativeSource(image)
+      image = new imageSource.ImageSource(image)
     }
 
     //"assets-library://asset/asset.JPG?id=2EFB75E5-3820-488D-83D7-EE86C88EAFCB&ext=JPG"
@@ -114,9 +121,12 @@ class  ImagePickerControllerDelegate extends NSObject{
     picker.presentingViewController.dismissViewControllerAnimatedCompletion(true, null);
 
   }
-}
 
-ImagePickerControllerDelegate.ObjCProtocols = [UIImagePickerControllerDelegate, UINavigationControllerDelegate];
+  ImagePickerControllerDelegate.ObjCProtocols = [UIImagePickerControllerDelegate, UINavigationControllerDelegate];
+
+  return ImagePickerControllerDelegate
+
+})(NSObject)
 
 function openGallery(params){
 
