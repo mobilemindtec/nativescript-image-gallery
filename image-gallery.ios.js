@@ -1,4 +1,4 @@
-var application = require("application");
+var application = require("@nativescript/core/application");
 var dialogs = require("@nativescript/core/ui/dialogs");
 var cameraModule = require("@nativescript/camera");
 var imageModule = require("@nativescript/core/ui/image");
